@@ -6,9 +6,14 @@ from config import CALCOM_API_KEY, CALCOM_EVENT_TYPE_ID
 logger = logging.getLogger(__name__)
 
 BASE_URL = "https://api.cal.com/v2"
-_HEADERS = {
+_HEADERS_SLOTS = {
     "Authorization": f"Bearer {CALCOM_API_KEY}",
     "cal-api-version": "2024-09-04",
+    "Content-Type": "application/json",
+}
+_HEADERS_BOOKINGS = {
+    "Authorization": f"Bearer {CALCOM_API_KEY}",
+    "cal-api-version": "2024-08-13",
     "Content-Type": "application/json",
 }
 
@@ -52,7 +57,7 @@ async def get_available_slots(days_ahead: int = 7) -> dict:
                     "end": end,
                     "timeZone": "America/Guatemala",
                 },
-                headers=_HEADERS,
+                headers=_HEADERS_SLOTS,
             )
             logger.warning("CALCOM status: %s body: %s", resp.status_code, resp.text)
             resp.raise_for_status()
@@ -105,7 +110,7 @@ async def create_booking(
         async with httpx.AsyncClient(timeout=15) as client:
             resp = await client.post(
                 f"{BASE_URL}/bookings",
-                headers=_HEADERS,
+                headers=_HEADERS_BOOKINGS,
                 json={
                     "eventTypeId": CALCOM_EVENT_TYPE_ID,
                     "start": slot_iso,
@@ -151,7 +156,7 @@ async def get_bookings_by_phone(telefono: str) -> list[dict]:
         async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.get(
                 f"{BASE_URL}/bookings",
-                headers=_HEADERS,
+                headers=_HEADERS_BOOKINGS,
                 params={"status": "upcoming"},
             )
             resp.raise_for_status()
@@ -193,7 +198,7 @@ async def cancel_booking(booking_id: str, reason: str = "Cancelado por paciente"
         async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.delete(
                 f"{BASE_URL}/bookings/{booking_id}/cancel",
-                headers=_HEADERS,
+                headers=_HEADERS_BOOKINGS,
                 json={"cancellationReason": reason},
             )
             resp.raise_for_status()
@@ -213,7 +218,7 @@ async def list_bookings_range(start_date: str, end_date: str) -> list[dict]:
         async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.get(
                 f"{BASE_URL}/bookings",
-                headers=_HEADERS,
+                headers=_HEADERS_BOOKINGS,
                 params={
                     "afterStart": f"{start_date}T00:00:00Z",
                     "beforeEnd": f"{end_date}T23:59:59Z",
