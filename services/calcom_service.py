@@ -48,8 +48,8 @@ async def get_available_slots(days_ahead: int = 7) -> dict:
                 f"{BASE_URL}/slots",
                 params={
                     "eventTypeId": CALCOM_EVENT_TYPE_ID,
-                    "startTime": start,
-                    "endTime": end,
+                    "start": start,
+                    "end": end,
                     "timeZone": "America/Guatemala",
                 },
                 headers=_HEADERS,
