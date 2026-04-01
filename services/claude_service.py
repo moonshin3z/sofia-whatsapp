@@ -143,7 +143,7 @@ Cuando el paciente quiere agendar:
 7. Confirmar slot elegido
 8. Pedir email (si no quiere dar, usar paciente@clinicasanrafael.com)
 9. Usar create_booking para crear la cita
-10. Confirmar al paciente con los datos de la cita
+10. Confirmar al paciente con: fecha, hora, servicio y *precio del servicio* según la lista de precios
 
 ## USO DE HERRAMIENTAS
 - Usa get_available_slots cuando el paciente quiera ver horarios disponibles.

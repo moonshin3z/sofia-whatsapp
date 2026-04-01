@@ -118,9 +118,14 @@ async def create_booking(
                     "metadata": {"whatsapp": telefono},
                 },
             )
+            logger.warning("CALCOM create_booking status: %s body: %s", resp.status_code, resp.text)
             resp.raise_for_status()
             data = resp.json()
+    except httpx.HTTPStatusError as exc:
+        logger.warning("CALCOM create_booking HTTP error: %s", exc)
+        return {"error": str(exc)}
     except Exception as exc:
+        logger.warning("CALCOM create_booking error: %s", exc)
         return {"error": str(exc)}
 
     booking = data.get("data", data)  # unwrap if nested
