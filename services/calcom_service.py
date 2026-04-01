@@ -45,7 +45,7 @@ async def get_available_slots(days_ahead: int = 7) -> dict:
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.get(
-                f"{BASE_URL}/slots/available",
+                f"{BASE_URL}/slots",
                 params={
                     "eventTypeId": CALCOM_EVENT_TYPE_ID,
                     "startTime": start,
