@@ -49,6 +49,9 @@ async def process_message(phone: str, body: str) -> None:
 
     Runs as a FastAPI BackgroundTask so Twilio receives a 200 OK immediately.
     """
+    if not body or not body.strip():
+        return
+
     try:
         history = conversation_manager.get_history(phone)
 
@@ -126,27 +129,27 @@ async def whatsapp_webhook(
     num_media: int = int(params.get("NumMedia", "0"))
     media_type: str = params.get("MediaContentType0", "")
 
-    # Ignore completely empty messages
+    # Ignore completely empty messages (no text and no media)
     if not from_number or (not body and num_media == 0):
         return Response(
             content='<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
             media_type="text/xml",
         )
 
-    # If media was sent, replace body with a descriptive placeholder
+    # Media received — reply directly without going through Claude
     if num_media > 0 and not body:
-        if "sticker" in media_type:
-            body = "[El usuario envió un sticker]"
-        elif media_type.startswith("image/"):
-            body = "[El usuario envió una imagen]"
-        elif media_type.startswith("video/"):
-            body = "[El usuario envió un video]"
-        elif media_type.startswith("audio/"):
-            body = "[El usuario envió un audio]"
-        else:
-            body = "[El usuario envió un archivo multimedia]"
+        background_tasks.add_task(
+            twilio_service.send_message,
+            from_number,
+            "¡Hola! Lamentablemente no puedo ver imágenes, stickers, videos ni audios 😊 "
+            "¿En qué le puedo ayudar? Escríbame su consulta.",
+        )
+        return Response(
+            content='<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
+            media_type="text/xml",
+        )
 
-    # ── Dispatch ───────────────────────────────────────────────────────────────
+    # ── Dispatch text message ──────────────────────────────────────────────────
     background_tasks.add_task(process_message, from_number, body)
 
     return Response(
