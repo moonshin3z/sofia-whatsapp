@@ -64,25 +64,23 @@ async def get_available_slots(days_ahead: int = 7) -> dict:
         logger.warning("CALCOM get_available_slots error: %s", exc)
         return {"error": str(exc)}
 
-    # Cal.com v2 wraps data under {"status":"success","data":{"slots":{...}}}
+    # Cal.com v2: {"status":"success","data":{"2026-04-02":[{"start":"..."}],...}}
     raw_slots: dict = {}
     if isinstance(data, dict):
-        raw_slots = (
-            data.get("data", {}).get("slots", {})
-            or data.get("slots", {})
-            or {}
-        )
+        inner = data.get("data", {})
+        raw_slots = inner if isinstance(inner, dict) else {}
 
     filtered: dict = {}
     for date_str, slots in raw_slots.items():
         valid = []
         for slot in slots:
-            iso = slot.get("time") or slot.get("start") or ""
+            iso = slot.get("start") or slot.get("time") or ""
             if not iso:
                 continue
-            gt = _to_guatemala(iso)
-            if 8 <= gt.hour < 18:
-                valid.append({"iso": iso, "hora_local": gt.strftime("%H:%M")})
+            # Slots already come in Guatemala time (offset -06:00), parse as-is
+            dt = datetime.fromisoformat(iso)
+            if 8 <= dt.hour < 18:
+                valid.append({"iso": iso, "hora_local": dt.strftime("%H:%M")})
         if valid:
             filtered[date_str] = valid
 
