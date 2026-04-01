@@ -54,9 +54,12 @@ async def get_available_slots(days_ahead: int = 7) -> dict:
                 },
                 headers=_HEADERS,
             )
+            logger.warning("CALCOM status: %s body: %s", resp.status_code, resp.text)
             resp.raise_for_status()
             data = resp.json()
-            logger.warning("CALCOM get_available_slots response: %s", data)
+    except httpx.HTTPStatusError as exc:
+        logger.warning("CALCOM get_available_slots HTTP error: %s", exc)
+        return {"error": str(exc)}
     except Exception as exc:
         logger.warning("CALCOM get_available_slots error: %s", exc)
         return {"error": str(exc)}
