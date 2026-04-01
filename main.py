@@ -1,7 +1,10 @@
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers.webhook import router as webhook_router
 from routers.api import router as api_router
+
+logging.basicConfig(level=logging.WARNING)
 
 app = FastAPI(
     title="Sofía AI — WhatsApp Dental Bot",

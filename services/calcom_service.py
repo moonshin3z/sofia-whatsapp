@@ -1,6 +1,9 @@
 import httpx
+import logging
 from datetime import datetime, timedelta
 from config import CALCOM_API_KEY, CALCOM_EVENT_TYPE_ID
+
+logger = logging.getLogger(__name__)
 
 BASE_URL = "https://api.cal.com/v2"
 _HEADERS = {
@@ -53,7 +56,9 @@ async def get_available_slots(days_ahead: int = 7) -> dict:
             )
             resp.raise_for_status()
             data = resp.json()
+            logger.warning("CALCOM get_available_slots response: %s", data)
     except Exception as exc:
+        logger.warning("CALCOM get_available_slots error: %s", exc)
         return {"error": str(exc)}
 
     # Cal.com v2 wraps data under {"status":"success","data":{"slots":{...}}}
