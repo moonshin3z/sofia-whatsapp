@@ -123,14 +123,28 @@ async def whatsapp_webhook(
     # ── Extract message fields ─────────────────────────────────────────────────
     from_number: str = params.get("From", "")
     body: str = params.get("Body", "").strip()
-    num_media: str = params.get("NumMedia", "0")
+    num_media: int = int(params.get("NumMedia", "0"))
+    media_type: str = params.get("MediaContentType0", "")
 
-    # Ignore empty messages (e.g. images without caption)
-    if not from_number or (not body and num_media == "0"):
+    # Ignore completely empty messages
+    if not from_number or (not body and num_media == 0):
         return Response(
             content='<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
             media_type="text/xml",
         )
+
+    # If media was sent, replace body with a descriptive placeholder
+    if num_media > 0 and not body:
+        if "sticker" in media_type:
+            body = "[El usuario envió un sticker]"
+        elif media_type.startswith("image/"):
+            body = "[El usuario envió una imagen]"
+        elif media_type.startswith("video/"):
+            body = "[El usuario envió un video]"
+        elif media_type.startswith("audio/"):
+            body = "[El usuario envió un audio]"
+        else:
+            body = "[El usuario envió un archivo multimedia]"
 
     # ── Dispatch ───────────────────────────────────────────────────────────────
     background_tasks.add_task(process_message, from_number, body)
